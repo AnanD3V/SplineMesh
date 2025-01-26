@@ -19,8 +19,18 @@ Stay tuned for updates!
 ---
 
 ## 📦 Installation  
+
+### Option 1: Install via GitHub URL
 1. Open Unity's **Package Manager**.  
 2. Click the **Add package from Git URL** button.  
 3. Paste the following URL:  
    ```text
-   https://github.com/your-username/splinemesh
+   https://github.com/AnanD3V/SplineMesh
+
+### Option 2: Install via package
+1. Open this alternative link to get the package file
+   ```text
+   https://github.com/AnanD3V/SplineMeshUnity
+2. Download the .zip file
+3. Extract the .zip file
+4. Open the .unitypackage file inside it with Unity open, to import the package directly.
