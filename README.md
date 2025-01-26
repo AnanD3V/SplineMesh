@@ -26,7 +26,6 @@ Stay tuned for updates!
 3. Paste the following URL:  
    ```text
    https://github.com/AnanD3V/SplineMesh
-
 ### Option 2: Install via package
 1. Open this alternative link to get the package file
    ```text
