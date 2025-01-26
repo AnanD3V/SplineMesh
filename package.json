@@ -8,21 +8,21 @@
     "spline",
     "mesh",
     "collider",
-    "animation",
+    "spline road",
     "conveyor belt",
     "texture",
-    "ProBuilder"
+    "train tracks"
   ],
   "author": {
-    "name": "Your Name or Company",
-    "email": "your.email@example.com",
-    "url": "https://yourwebsite.com"
+    "name": "Anand Satheesan",
+    "email": "anandcdigital@gmail.com",
+    "url": "https://youtube.com/@anandev"
   },
   "dependencies": {
     "com.unity.splines": "2.7.2"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/splinemesh.git"
+    "url": "https://github.com/AnanD3V/SplineMesh.git"
   }
 }
