@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.Splines;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace SplineMeshTools.Core
 {
@@ -41,20 +42,36 @@ namespace SplineMeshTools.Core
         protected SplineContainer splineContainer;
         protected MeshFilter meshFilter;
 
+        private bool autoGenFlag;
+
         void Awake() => meshFilter = GetComponent<MeshFilter>();
 
         void OnEnable()
         {
             splineContainer = GetComponent<SplineContainer>();
-
+            autoGenFlag = autoGenerateMesh;
             if(autoGenerateMesh)
                 Spline.Changed += OnSplineModified;
         }
 
         void OnDisable()
         {
-            if(autoGenerateMesh)
+            if(!autoGenerateMesh)
                 Spline.Changed -= OnSplineModified;
+        }
+
+        private void OnValidate()
+        {
+            if(autoGenerateMesh && !autoGenFlag)
+            {
+                Spline.Changed += OnSplineModified;
+            }
+            else if(!autoGenerateMesh && autoGenFlag)
+            {
+                Spline.Changed -= OnSplineModified;
+            }
+            autoGenFlag = autoGenerateMesh;
+
         }
 
         public virtual void GenerateMeshAlongSpline()
@@ -232,18 +249,9 @@ namespace SplineMeshTools.Core
             if (spline == null || segmentMesh == null)
                 return;
 
-            if (spline == splineContainer.Spline)
+            if (splineContainer.Splines.Contains(spline))
                 GenerateMeshAlongSpline();
         }
 
-        public void ToggleAutoGenerateMesh()
-        {
-            autoGenerateMesh = !autoGenerateMesh;
-
-            if (autoGenerateMesh)
-                Spline.Changed += OnSplineModified;
-            else
-                Spline.Changed -= OnSplineModified;
-        }
     }
 }
