@@ -21,6 +21,7 @@ Stay tuned for updates!
 ## 📦 Installation  
 
 ### Option 1: Install via GitHub URL
+(Make sure to have [Git](https://git-scm.com/) installed in your system)
 1. Open Unity's **Package Manager**.  
 2. Click the **Add package from Git URL** button.  
 3. Paste the following URL:  
