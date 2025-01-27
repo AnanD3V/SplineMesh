@@ -1,9 +1,9 @@
 {
   "name": "com.anandev.splinemesh",
   "displayName": "Spline Mesh",
-  "version": "1.3.1",
+  "version": "1.4.0",
   "unity": "2021.3",
-  "description": "A flexible spline-based mesh and collider generation package for Unity, including ProBuilder support.",
+  "description": "A flexible spline-based mesh and collider generation package for Unity.",
   "keywords": [
     "spline",
     "mesh",
@@ -28,9 +28,19 @@
   "_fingerprint": "b5f504e483e95aa704fdb1ddd2169dee8a3e5c00",
   "samples": [
     {
-      "displayName": "SplineMesh Samples",
-      "description": "Sample scenes and assets to demonstrate the features of the Spline Mesh package.",
-      "path": "Samples~/"
+      "displayName": "Conveyor Belt Sample",
+      "description": "A sample scene showcasing the conveyor belt functionality.",
+      "path": "Samples~/Conveyors"
+    },
+    {
+      "displayName": "Road Creation Sample",
+      "description": "A sample scene demonstrating road creation with splines.",
+      "path": "Samples~/Roads"
+    },
+    {
+      "displayName": "Train Tracks Sample",
+      "description": "A sample scene for generating train tracks using splines.",
+      "path": "Samples~/Train Tracks"
     }
   ]
 }
