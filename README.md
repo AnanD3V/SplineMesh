@@ -3,6 +3,9 @@
 
 This package provides a powerful toolset for developers to generate spline-based meshes, colliders, and animations, making it perfect for conveyor belts, flexible tracks, procedural structures, and more.
 
+## 📄 Documentation
+Link: [Documentation](https://docs.google.com/document/d/1Ul0xCCkXnXC6aQOrWnYuw3nb1dB4rRg9OA2tuF2eWms/edit?usp=sharing)
+
 ## 🌟 Features  
 - 🌀 **SplineMesh**: Generate and deform meshes along a spline.  
 - 🛠️ **Collider Generators**: Create runtime box and capsule colliders for spline meshes.  
