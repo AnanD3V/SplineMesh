@@ -50,33 +50,35 @@ namespace SplineMeshTools.Core
         {
             splineContainer = GetComponent<SplineContainer>();
             autoGenFlag = autoGenerateMesh;
-            if(autoGenerateMesh)
+
+            if (autoGenerateMesh)
                 Spline.Changed += OnSplineModified;
         }
 
         void OnDisable()
         {
-            if(!autoGenerateMesh)
+            if (!autoGenerateMesh)
                 Spline.Changed -= OnSplineModified;
         }
 
         private void OnValidate()
         {
-            if(autoGenerateMesh && !autoGenFlag)
+            if (autoGenerateMesh && !autoGenFlag)
             {
                 Spline.Changed += OnSplineModified;
             }
-            else if(!autoGenerateMesh && autoGenFlag)
+            else if (!autoGenerateMesh && autoGenFlag)
             {
                 Spline.Changed -= OnSplineModified;
             }
-            autoGenFlag = autoGenerateMesh;
 
+            autoGenFlag = autoGenerateMesh;
         }
 
         public virtual void GenerateMeshAlongSpline()
         {
-            if(CheckForErrors()) return;
+            if (CheckForErrors())
+                return;
 
             var combinedVertices = new List<Vector3>();
             var combinedNormals = new List<Vector3>();
@@ -118,15 +120,18 @@ namespace SplineMeshTools.Core
                     segmentRatios.Add(ratio);
                 }
 
-                segmentRatios.Add(1f);  //Add the last ratio which will be 1f
+                segmentRatios.Add(1f); // Add the last ratio which will be 1f
 
                 float meshBoundsDistance = Mathf.Abs(SplineMeshUtils.GetRequiredAxis(normalizedSegmentMesh.bounds.size, forwardAxis));
                 var vertexRatios = new List<float>();
                 var vertexOffsets = new List<Vector3>();
+				var normalizedMeshVertecies = new List<Vector3>();
 
-                // Calculate vertex ratios and offsets
-                foreach (var vertex in normalizedSegmentMesh.vertices)
-                {
+				normalizedSegmentMesh.GetVertices(normalizedMeshVertecies);
+
+				// Calculate vertex ratios and offsets
+				foreach (var vertex in normalizedMeshVertecies)
+				{
                     var offset = SplineMeshUtils.GetRequiredOffset(vertex, forwardAxis);
                     float ratio = Mathf.Abs(SplineMeshUtils.GetRequiredAxis(vertex, forwardAxis)) / meshBoundsDistance;
 
@@ -139,22 +144,26 @@ namespace SplineMeshTools.Core
                 {
                     int counter = 0;
 
-                    foreach (var vector in normalizedSegmentMesh.vertices)
-                    {
-                        float point = segmentRatios[i] + (vertexRatios[counter] * (segmentRatios[(i + 1) % segmentRatios.Count] - segmentRatios[i]));
-                        var tangent = spline.EvaluateTangent(point);
-                        Vector3 splinePosition = spline.EvaluatePosition(point);
+					for (int v = 0; v < normalizedMeshVertecies.Count; v++)
+					{
+						float point = segmentRatios[i] + (vertexRatios[counter] * (segmentRatios[(i + 1) % segmentRatios.Count] - segmentRatios[i]));
+						var tangent = spline.EvaluateTangent(point);
+						Vector3 splinePosition = spline.EvaluatePosition(point);
 
-                        var splineRotation = Quaternion.LookRotation(tangent, Vector3.up);
-                        var transformedPosition = splinePosition + splineRotation * vertexOffsets[counter];
+						var splineRotation = Quaternion.LookRotation(tangent, Vector3.up);
+						var transformedPosition = splinePosition + splineRotation * vertexOffsets[counter];
 
-                        vertices.Add(transformedPosition + positionAdjustment);
-                        counter++;
-                    }
+						vertices.Add(transformedPosition + positionAdjustment);
+						counter++;
+					}
 
-                    // Add transformed normals
-                    for (int j = 0; j < normalizedSegmentMesh.normals.Length; j++)
-                    {
+					var normalizedSegmentMeshNormals = new List<Vector3>();
+
+					normalizedSegmentMesh.GetNormals(normalizedSegmentMeshNormals);
+
+					// Add transformed normals
+					for (int j = 0; j < normalizedSegmentMeshNormals.Count; j++)
+					{
                         var normal = normalizedSegmentMesh.normals[j];
                         float point = segmentRatios[i] + (vertexRatios[j] * (segmentRatios[(i + 1) % segmentRatios.Count] - segmentRatios[i]));
                         var tangent = spline.EvaluateTangent(point);
@@ -210,12 +219,13 @@ namespace SplineMeshTools.Core
 
             var generatedMesh = new Mesh();
             generatedMesh.name = meshName;
-            generatedMesh.vertices = combinedVertices.ToArray();
-            generatedMesh.normals = combinedNormals.ToArray();
-            generatedMesh.uv = combinedUVs.ToArray();
             generatedMesh.subMeshCount = segmentMesh.subMeshCount;
 
-            for (int submeshIndex = 0; submeshIndex < segmentMesh.subMeshCount; submeshIndex++)
+			generatedMesh.SetVertices(combinedVertices);
+			generatedMesh.SetNormals(combinedNormals);
+			generatedMesh.SetUVs(0, combinedUVs);
+
+			for (int submeshIndex = 0; submeshIndex < segmentMesh.subMeshCount; submeshIndex++)
                 generatedMesh.SetTriangles(combinedSubmeshTriangles[submeshIndex].ToArray(), submeshIndex);
 
             meshFilter.mesh = generatedMesh;
@@ -223,7 +233,6 @@ namespace SplineMeshTools.Core
             generatedMesh.RecalculateBounds();
             generatedMesh.RecalculateNormals();
             generatedMesh.RecalculateTangents();
-
         }
 
         protected virtual bool CheckForErrors()
@@ -245,13 +254,11 @@ namespace SplineMeshTools.Core
 
         public void OnSplineModified(Spline spline, int knotIndex, SplineModification modification)
         {
-
             if (spline == null || segmentMesh == null)
                 return;
 
             if (splineContainer.Splines.Contains(spline))
                 GenerateMeshAlongSpline();
         }
-
     }
 }

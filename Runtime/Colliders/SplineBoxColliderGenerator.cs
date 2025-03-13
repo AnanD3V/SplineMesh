@@ -1,23 +1,18 @@
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Splines;
+using System.Collections.Generic;
 
 namespace SplineMeshTools.Colliders
 {
-
-    [RequireComponent(typeof(SplineContainer))]
-    [RequireComponent(typeof(MeshCollider))]
-    [RequireComponent(typeof(Rigidbody))]
-    public class SplineBoxColliderGenerator : MonoBehaviour
+    [RequireComponent(typeof(Rigidbody), typeof(MeshCollider), typeof(SplineContainer))]
+    public class SplineBoxColliderGenerator : SplineColliderGenerator
     {
         public float width = 1f;
         public float height = 1f;
-        public Vector3 offset = Vector3.zero;
         public int resolution = 10;
+        public Vector3 offset = Vector3.zero;
 
-        private MeshCollider meshCollider;
-
-        private void OnValidate()
+		protected override void OnValidate()
         {
             // Ensure resolution is never below 1
             resolution = Mathf.Max(1, resolution);
@@ -26,57 +21,36 @@ namespace SplineMeshTools.Colliders
             GenerateAndAssignMesh();
         }
 
-        private void GenerateAndAssignMesh()
+        public override Mesh GenerateColliderMesh()
         {
-            if (meshCollider == null)
+            var splineContainer = GetComponent<SplineContainer>();
+
+            var combinedVertices = new List<Vector3>();
+            var combinedTriangles = new List<int>();
+
+            foreach (var spline in splineContainer.Splines)
             {
-                meshCollider = GetComponent<MeshCollider>();
+                var mesh = new Mesh();
 
-                if (meshCollider == null)
-                {
-                    meshCollider = gameObject.AddComponent<MeshCollider>();
-                }
-            }
-
-            Rigidbody rb = GetComponent<Rigidbody>();
-            if (!rb.isKinematic)
-            {
-                Debug.LogWarning("Rigidbody is changed to be Kinematic.");
-                rb.isKinematic = true;
-            }
-            meshCollider.sharedMesh = GenerateBoxColliderMesh();
-        }
-
-        public Mesh GenerateBoxColliderMesh()
-        {
-            SplineContainer splineContainer = GetComponent<SplineContainer>();
-
-            List<Vector3> combinedVertices = new List<Vector3>();
-            List<int> combinedTriangles = new List<int>();
-
-            foreach (Spline spline in splineContainer.Splines)
-            {
-                Mesh mesh = new Mesh();
-
-                Vector3[] vertices = new Vector3[resolution * 8];
+                var vertices = new Vector3[resolution * 8];
                 int[] triangles = new int[(resolution) * 36];
 
                 for (int i = 0; i < resolution; i++)
                 {
                     float t = i / (float)(resolution - 1);
-                    Vector3 splinePosition = (Vector3)spline.EvaluatePosition(t) + offset;
+                    var splinePosition = (Vector3)spline.EvaluatePosition(t) + offset;
 
-                    Vector3 tangent = spline.EvaluateTangent(t);
-                    Vector3 right = Vector3.Cross(Vector3.up, tangent).normalized * width / 2f;
-                    Vector3 up = Vector3.up * height / 2f;
+                    var tangent = spline.EvaluateTangent(t);
+                    var right = Vector3.Cross(Vector3.up, tangent).normalized * width / 2f;
+                    var up = Vector3.up * height / 2f;
 
                     if (i == 0)
                     {
                         // Front face (first segment)
-                        vertices[0] = splinePosition - right - up;      // Bottom left
-                        vertices[1] = splinePosition + right - up;      // Bottom right
-                        vertices[2] = splinePosition - right + up;      // Top left
-                        vertices[3] = splinePosition + right + up;      // Top right
+                        vertices[0] = splinePosition - right - up; // Bottom left
+                        vertices[1] = splinePosition + right - up; // Bottom right
+                        vertices[2] = splinePosition - right + up; // Top left
+                        vertices[3] = splinePosition + right + up; // Top right
                     }
 
                     // Back face (offset by depth)
@@ -149,19 +123,19 @@ namespace SplineMeshTools.Colliders
 
                 combinedVertices.AddRange(vertices);
                 combinedTriangles.AddRange(triangles);
-                mesh.vertices = vertices;
-                mesh.triangles = triangles;
+
+                mesh.SetVertices(vertices);
+                mesh.SetTriangles(triangles, 0);
                 mesh.RecalculateNormals();
             }
 
-            Mesh combinedMesh = new Mesh();
+            var combinedMesh = new Mesh();
+
             combinedMesh.SetVertices(combinedVertices);
             combinedMesh.SetTriangles(combinedTriangles, 0);
             combinedMesh.RecalculateNormals();
 
             return combinedMesh;
         }
-
-
     }
 }

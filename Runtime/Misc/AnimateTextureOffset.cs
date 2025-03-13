@@ -36,7 +36,7 @@ namespace SplineMeshTools.Misc
             if (material != null)
             {
                 // Calculate the new offset value for a continuous loop
-                Vector2 newOffset = originalOffset + offsetDirection * speed * Time.time;
+                var newOffset = originalOffset + offsetDirection * speed * Time.time;
 
                 // Apply the new texture offset to the material
                 material.mainTextureOffset = newOffset;
