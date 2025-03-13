@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Splines;
 
@@ -5,31 +6,33 @@ namespace SplineMeshTools.Core
 {
 	public static class SplineMeshUtils
     {
-        public static Mesh NormalizeMesh(this Mesh mesh, Quaternion rotationAdjustment, Vector3 scaleAdjustment)
-        {
-            var normalizedMesh = Object.Instantiate(mesh);
-            var vertices = normalizedMesh.vertices;
+		public static Mesh NormalizeMesh(this Mesh mesh, Quaternion rotationAdjustment, Vector3 scaleAdjustment)
+		{
+			var vertices = new List<Vector3>();
+			var normals = new List<Vector3>();
+			var normalizedMesh = Object.Instantiate(mesh);
 
-            for (int i = 0; i < vertices.Length; i++)
-            {
-                vertices[i] = Vector3.Scale(vertices[i], scaleAdjustment);
-                vertices[i] = rotationAdjustment * vertices[i];
-            }
+			normalizedMesh.GetVertices(vertices);
 
-            normalizedMesh.vertices = vertices;
+			for (int i = 0; i < vertices.Count; i++)
+			{
+				vertices[i] = Vector3.Scale(vertices[i], scaleAdjustment);
+				vertices[i] = rotationAdjustment * vertices[i];
+			}
 
-            var normals = normalizedMesh.normals;
+			normalizedMesh.SetVertices(vertices);
+			normalizedMesh.GetNormals(normals);
 
-            for (int i = 0; i < normals.Length; i++)
-                normals[i] = rotationAdjustment * normals[i];
+			for (int i = 0; i < normals.Count; i++)
+				normals[i] = rotationAdjustment * normals[i];
 
-            normalizedMesh.normals = normals;
+			normalizedMesh.SetNormals(normals);
 
-            normalizedMesh.RecalculateBounds();
-            normalizedMesh.RecalculateTangents();
+			normalizedMesh.RecalculateBounds();
+			normalizedMesh.RecalculateTangents();
 
-            return normalizedMesh;
-        }
+			return normalizedMesh;
+		}
 
 		public static float GetDistanceAlongSpline(this SplineContainer splineContainer, int index, Vector3 point, int samples = 100)
 		{

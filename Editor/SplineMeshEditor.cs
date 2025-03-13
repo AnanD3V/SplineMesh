@@ -1,47 +1,53 @@
 using UnityEditor;
-using UnityEngine;
 using SplineMeshTools.Core;
+using UnityEngine.UIElements;
+using UnityEditor.UIElements;
 
 namespace SplineMeshTools.Editor
 {
-    [CustomEditor(typeof(SplineMesh))]
-    public class SplineMeshEditor: UnityEditor.Editor
+    [CustomEditor(typeof(SplineMesh), true)]
+    public class SplineMeshEditor : UnityEditor.Editor
     {
-        public override void OnInspectorGUI()
-        {
-            DrawDefaultInspector();
-            DrawGenerateButton();
-        }
+		public override VisualElement CreateInspectorGUI()
+		{
+			var splineMesh = (SplineMesh)target;
 
-        private void DrawGenerateButton()
-        {
-            GUILayout.Space(10f);
+			var root = new VisualElement();
+			var defaultInspector = DrawDefaultInspector();
 
-            SplineMesh splineMesh = (SplineMesh)target;
+			var generateButton = new Button(() => splineMesh.GenerateMeshAlongSpline())
+			{
+				text = "Generate Mesh",
+				style = { marginTop = 10f }
+			};
 
-            // Generate Mesh Button with custom color
-            GUIStyle buttonStyle = new GUIStyle(GUI.skin.button);
-            buttonStyle.normal.textColor = Color.white;
-            buttonStyle.fontStyle = FontStyle.Bold;
-            buttonStyle.fixedHeight = 30;
-            buttonStyle.fixedWidth = 150;
-            buttonStyle.alignment = TextAnchor.MiddleCenter;
+			root.Add(defaultInspector);
+			root.Add(generateButton);
 
-            GUILayout.BeginHorizontal();
-            GUILayout.FlexibleSpace();
+			return root;
+		}
 
-            Color originalColor = GUI.backgroundColor;
-            GUI.backgroundColor = Color.green;
+		private new VisualElement DrawDefaultInspector() // Draws the default unity inspector with UI Toolkit
+		{
+			var container = new VisualElement();
 
-            if (GUILayout.Button("Generate Mesh", buttonStyle))
-            {
-                splineMesh.GenerateMeshAlongSpline();
-            }
+			var iterator = serializedObject.GetIterator();
 
-            GUI.backgroundColor = originalColor;
+			if (iterator.NextVisible(true))
+			{
+				do
+				{
+					var propertyField = new PropertyField(iterator.Copy());
 
-            GUILayout.FlexibleSpace();
-            GUILayout.EndHorizontal();
-        }
-    }
+					if (iterator.propertyPath == "m_Script" && serializedObject.targetObject != null)
+						propertyField.SetEnabled(false);
+
+					container.Add(propertyField);
+				}
+				while (iterator.NextVisible(false));
+			}
+
+			return container;
+		}
+	}
 }

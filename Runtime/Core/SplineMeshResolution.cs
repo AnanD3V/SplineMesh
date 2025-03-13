@@ -58,9 +58,13 @@ namespace SplineMeshTools.Core
                     var vertexRatios = new List<float>();
                     var vertexOffsets = new List<Vector3>();
 
-                    // Calculate vertex ratios and offsets
-                    foreach (var vertex in normalizedSegmentMesh.vertices)
-                    {
+					var normalizedMeshVertecies = new List<Vector3>();
+
+					normalizedSegmentMesh.GetVertices(normalizedMeshVertecies);
+
+					// Calculate vertex ratios and offsets
+					foreach (var vertex in normalizedMeshVertecies)
+					{
                         float ratio = Mathf.Abs(SplineMeshUtils.GetRequiredAxis(vertex, forwardAxis)) / meshBoundsDistance;
                         var offset = SplineMeshUtils.GetRequiredOffset(vertex, forwardAxis);
                         vertexRatios.Add(ratio);
@@ -70,22 +74,26 @@ namespace SplineMeshTools.Core
 
                     int counter = 0;
 
-                    foreach (var vertex in normalizedSegmentMesh.vertices)
-                    {
-                        float point = (i / (float)meshResolution[splineCounter]) + (vertexRatios[counter] * (1 / (float)meshResolution[splineCounter]));
-                        var tangent = spline.EvaluateTangent(point);
-                        Vector3 splinePosition = spline.EvaluatePosition(point);
+					for (int v = 0; v < normalizedMeshVertecies.Count; v++)
+					{
+						float point = (i / (float)meshResolution[splineCounter]) + (vertexRatios[counter] * (1 / (float)meshResolution[splineCounter]));
+						var tangent = spline.EvaluateTangent(point);
+						Vector3 splinePosition = spline.EvaluatePosition(point);
 
-                        var splineRotation = Quaternion.LookRotation(tangent, Vector3.up);
-                        var transformedPosition = splinePosition + splineRotation * vertexOffsets[counter];
+						var splineRotation = Quaternion.LookRotation(tangent, Vector3.up);
+						var transformedPosition = splinePosition + splineRotation * vertexOffsets[counter];
 
-                        vertices.Add(transformedPosition + positionAdjustment);
-                        counter++;
-                    }
+						vertices.Add(transformedPosition + positionAdjustment);
+						counter++;
+					}
 
-                    // Add transformed normals
-                    for (int j = 0; j < normalizedSegmentMesh.normals.Length; j++)
-                    {
+					var normalizedSegmentMeshNormals = new List<Vector3>();
+
+					normalizedSegmentMesh.GetNormals(normalizedSegmentMeshNormals);
+
+					// Add transformed normals
+					for (int j = 0; j < normalizedSegmentMeshNormals.Count; j++)
+					{
                         var normal = normalizedSegmentMesh.normals[j];
                         float point = (i / (float)meshResolution[splineCounter]) + (vertexRatios[j] * (1 / (float)meshResolution[splineCounter]));
 
@@ -109,9 +117,13 @@ namespace SplineMeshTools.Core
                         }
                     }
 
-                    // Add UVs with UV resolution
-                    for (int j = 0; j < normalizedSegmentMesh.uv.Length; j++)
-                    {
+					var normalizedSegmentMeshUVs = new List<Vector2>();
+
+					normalizedSegmentMesh.GetUVs(0, normalizedSegmentMeshUVs);
+
+					// Add UVs with UV resolution
+					for (int j = 0; j < normalizedSegmentMeshUVs.Count; j++)
+					{
                         var uv = normalizedSegmentMesh.uv[j];
                         float point;
 
@@ -139,12 +151,13 @@ namespace SplineMeshTools.Core
 
             var generatedMesh = new Mesh();
             generatedMesh.name = "Spline Mesh";
-            generatedMesh.vertices = combinedVertices.ToArray();
-            generatedMesh.normals = combinedNormals.ToArray();
-            generatedMesh.uv = combinedUVs.ToArray();
             generatedMesh.subMeshCount = segmentMesh.subMeshCount;
 
-            for (int submeshIndex = 0; submeshIndex < segmentMesh.subMeshCount; submeshIndex++)
+			generatedMesh.SetVertices(combinedVertices);
+			generatedMesh.SetNormals(combinedNormals);
+			generatedMesh.SetUVs(0, combinedUVs);
+
+			for (int submeshIndex = 0; submeshIndex < segmentMesh.subMeshCount; submeshIndex++)
                 generatedMesh.SetTriangles(combinedSubmeshTriangles[submeshIndex].ToArray(), submeshIndex);
 
             meshFilter.mesh = generatedMesh;
@@ -156,7 +169,8 @@ namespace SplineMeshTools.Core
 
         protected override bool CheckForErrors()
         {
-            if (base.CheckForErrors()) return true;
+            if (base.CheckForErrors()) 
+                return true;
 
             if (meshResolution.Length != splineContainer.Splines.Count)
             {

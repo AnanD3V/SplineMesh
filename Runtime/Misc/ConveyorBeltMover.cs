@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.Splines;
-using System.Collections.Generic;
 using SplineMeshTools.Core;
+using System.Collections.Generic;
 
 namespace SplineMeshTools.Misc
 {
@@ -25,17 +25,15 @@ namespace SplineMeshTools.Misc
         [Tooltip("Should moving objects preserve momentum once out of the spline?")]
         [SerializeField] bool preserveMomentum = true;
 
-
         private List<Rigidbody> objectsOnBelt = new List<Rigidbody>();
-
-        private Dictionary<Rigidbody, (Spline spline, float position, int collisionCounts)> objectPositions
-            = new Dictionary<Rigidbody, (Spline, float position, int collisionCounts)>();
+        private Dictionary<Rigidbody, (Spline spline, float position, int collisionCounts)> objectPositions = new();
 
         private void Start()
         {
             if (splineContainer == null)
             {
                 splineContainer = GetComponent<SplineContainer>();
+
                 if (splineContainer == null)
                     Debug.LogError("Spline Container must be assigned");
             }
@@ -45,22 +43,23 @@ namespace SplineMeshTools.Misc
         {
             if (collision.contacts[0].point.y > (transform.position.y + conveyorHeightOffset))
             {
-                Rigidbody rb = collision.rigidbody;
-                if (rb != null)
+                var rigidbody = collision.rigidbody;
+
+                if (rigidbody != null)
                 {
                     // Find the closest spline and its closest position on that spline
                     (Spline closestSpline, float closestPosition) = SplineMeshUtils.FindClosestSplineAndPosition(splineContainer, collision.transform.position);
 
                     if (closestSpline != null)
                     {
-                        if (!objectsOnBelt.Contains(rb))
+                        if (!objectsOnBelt.Contains(rigidbody))
                         {
-                            objectsOnBelt.Add(rb);
-                            objectPositions[rb] = (closestSpline, closestPosition, 1);
+                            objectsOnBelt.Add(rigidbody);
+                            objectPositions[rigidbody] = (closestSpline, closestPosition, 1);
                         }
                         else
                         {
-                            objectPositions[rb] = (closestSpline, closestPosition, objectPositions[rb].collisionCounts + 1);
+                            objectPositions[rigidbody] = (closestSpline, closestPosition, objectPositions[rigidbody].collisionCounts + 1);
                         }
                     }
                 }
@@ -69,14 +68,16 @@ namespace SplineMeshTools.Misc
 
         private void OnCollisionExit(Collision collision)
         {
-            Rigidbody rb = collision.rigidbody;
-            if (rb != null && objectsOnBelt.Contains(rb))
+            var rigodbody = collision.rigidbody;
+
+            if (rigodbody != null && objectsOnBelt.Contains(rigodbody))
             {
-                objectPositions[rb] = (objectPositions[rb].spline, objectPositions[rb].position, objectPositions[rb].collisionCounts - 1);
-                if (objectPositions[rb].collisionCounts == 0)
+                objectPositions[rigodbody] = (objectPositions[rigodbody].spline, objectPositions[rigodbody].position, objectPositions[rigodbody].collisionCounts - 1);
+
+                if (objectPositions[rigodbody].collisionCounts == 0)
                 {
-                    objectsOnBelt.Remove(rb);
-                    objectPositions.Remove(rb);
+                    objectsOnBelt.Remove(rigodbody);
+                    objectPositions.Remove(rigodbody);
                 }
             }
         }
@@ -85,23 +86,23 @@ namespace SplineMeshTools.Misc
         {
             for (int i = objectsOnBelt.Count - 1; i >= 0; i--)
             {
-                var rb = objectsOnBelt[i];
-                (Spline spline, float position, int collisionCount) = objectPositions[rb];
-                Vector3 direction = spline.EvaluateTangent(position / spline.GetLength());
+                var rigidbody = objectsOnBelt[i];
+                (Spline spline, float position, int collisionCount) = objectPositions[rigidbody];
+                var direction = spline.EvaluateTangent(position / spline.GetLength());
                 int dir = reverseDirection ? -1 : 1;
+
                 direction = direction * dir;
                 // Calculate the new position along the spline
                 position += dir * conveyorSpeed * Time.fixedDeltaTime;
 
                 bool outOfConveyor = (!reverseDirection && position > spline.GetLength()) || (reverseDirection && (position < 0f));
+
                 if (outOfConveyor)
                 {
-                    if (preserveMomentum)
-                    {
-                        // Apply a force in the last known direction to preserve momentum
-                        rb.AddForce(direction * conveyorSpeed, ForceMode.VelocityChange);
-                    }
-                    objectPositions.Remove(rb);
+                    if (preserveMomentum) // Apply a force in the last known direction to preserve momentum
+                        rigidbody.AddForce(direction * conveyorSpeed, ForceMode.VelocityChange);
+
+                    objectPositions.Remove(rigidbody);
                     objectsOnBelt.RemoveAt(i);
                     continue;
                 }
@@ -109,21 +110,17 @@ namespace SplineMeshTools.Misc
                 // Get the position on the spline
                 Vector3 splinePosition = spline.EvaluatePosition(position / spline.GetLength());
                 // Calculate the final position including height offset
-                Vector3 finalPosition = splinePosition + splineContainer.transform.position + Vector3.up * (conveyorHeightOffset);
-                finalPosition.y = rb.position.y;
+                var finalPosition = splinePosition + splineContainer.transform.position + Vector3.up * (conveyorHeightOffset);
+                finalPosition.y = rigidbody.position.y;
                 // Move the object to the new position
-                rb.MovePosition(finalPosition);
+                rigidbody.MovePosition(finalPosition);
 
-                if (snapRotation)
-                {
-                    // Rotate the object while maintaining its original orientation
-                    rb.MoveRotation(Quaternion.LookRotation(direction));
-                }
+                if (snapRotation) // Rotate the object while maintaining its original orientation                    
+					rigidbody.MoveRotation(Quaternion.LookRotation(direction));
 
                 // Update the position in the dictionary
-                objectPositions[rb] = (spline, position, objectPositions[rb].collisionCounts);
+                objectPositions[rigidbody] = (spline, position, objectPositions[rigidbody].collisionCounts);
             }
         }
-
     }
 }
