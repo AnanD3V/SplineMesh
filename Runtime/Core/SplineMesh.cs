@@ -33,6 +33,10 @@ namespace SplineMeshTools.Core
         [Tooltip("The UV Resolutions along spline(s). Count must match the same number of splines in the container.")]
         [SerializeField] protected float[] uvResolutions;
 
+        [Tooltip("Should the mesh twist based on the rotation of the knots?")]
+        [SerializeField] protected bool shouldTwistMesh = false;
+
+
         [Space]
         [Header("Offsets")]
         [SerializeField] protected Vector3 positionAdjustment;
@@ -98,12 +102,19 @@ namespace SplineMeshTools.Core
                 var uvs = new List<Vector2>();
 
                 var knots = new List<BezierKnot>(spline.Knots);
+                var knotRotations = new List<Quaternion>();
+
+                foreach (var knot in knots)
+                    knotRotations.Add(knot.Rotation);
+
                 var submeshTriangles = new List<int>[normalizedSegmentMesh.subMeshCount];
 
                 for (int i = 0; i < normalizedSegmentMesh.subMeshCount; i++)
                     submeshTriangles[i] = new List<int>();
 
                 int segmentCount = knots.Count - 1;
+
+               
 
                 if (spline.Closed)
                     segmentCount++;
@@ -142,26 +153,43 @@ namespace SplineMeshTools.Core
                     foreach (var vector in normalizedSegmentMesh.vertices)
                     {
                         float point = segmentRatios[i] + (vertexRatios[counter] * (segmentRatios[(i + 1) % segmentRatios.Count] - segmentRatios[i]));
-                        var tangent = spline.EvaluateTangent(point);
+                        point = Mathf.Clamp01(point); // Clamp to valid spline range
+
+                        var tangent = (Vector3) spline.EvaluateTangent(point);
                         Vector3 splinePosition = spline.EvaluatePosition(point);
 
-                        var splineRotation = Quaternion.LookRotation(tangent, Vector3.up);
-                        var transformedPosition = splinePosition + splineRotation * vertexOffsets[counter];
+                        // Compute interpolated twist rotation between the two knots
+                        int knotAIndex = i % knots.Count;
+                        int knotBIndex = (i + 1) % knots.Count;
 
+                        float t = vertexRatios[counter]; // Interpolation factor between knots
+                        Quaternion twistRotation = Quaternion.Slerp(knotRotations[knotAIndex], knotRotations[knotBIndex], t);
+
+                        // Combine tangent and twist to get final rotation
+                        Quaternion splineRotation = Quaternion.LookRotation(tangent.normalized, shouldTwistMesh ? (twistRotation * Vector3.up) : Vector3.up);
+
+                        var transformedPosition = splinePosition + splineRotation * vertexOffsets[counter];
                         vertices.Add(transformedPosition + positionAdjustment);
+
                         counter++;
                     }
 
-                    // Add transformed normals
                     for (int j = 0; j < normalizedSegmentMesh.normals.Length; j++)
                     {
                         var normal = normalizedSegmentMesh.normals[j];
                         float point = segmentRatios[i] + (vertexRatios[j] * (segmentRatios[(i + 1) % segmentRatios.Count] - segmentRatios[i]));
-                        var tangent = spline.EvaluateTangent(point);
+                        point = Mathf.Clamp01(point);
 
-                        var splineRotation = Quaternion.LookRotation(tangent, Vector3.up);
+                        var tangent = (Vector3)spline.EvaluateTangent(point);
+
+                        int knotAIndex = i % knots.Count;
+                        int knotBIndex = (i + 1) % knots.Count;
+
+                        float t = vertexRatios[j];
+                        Quaternion twistRotation = Quaternion.Slerp(knotRotations[knotAIndex], knotRotations[knotBIndex], t);
+
+                        Quaternion splineRotation = Quaternion.LookRotation(tangent.normalized, shouldTwistMesh ? (twistRotation * Vector3.up) : Vector3.up);
                         var transformedNormal = splineRotation * normal;
-
                         normals.Add(transformedNormal);
                     }
 
