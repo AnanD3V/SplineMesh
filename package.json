@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "com.unity.splines": "2.7.2"
+    "com.unity.formats.fbx": "5.1.5"
   },
   "repository": {
     "type": "git",

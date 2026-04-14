@@ -36,12 +36,16 @@ namespace SplineMeshTools.Core
         [Tooltip("Should the mesh twist based on the rotation of the knots?")]
         [SerializeField] protected bool shouldTwistMesh = false;
 
+        [Tooltip("Enable this if your mesh exceeds 65,535 vertices. Uses more memory.")]
+        [SerializeField] protected bool highDensityMesh = false;
+
 
         [Space]
         [Header("Offsets")]
         [SerializeField] protected Vector3 positionAdjustment;
         [SerializeField] protected Quaternion rotationAdjustment;
         [SerializeField] protected Vector3 scaleAdjustment = Vector3.one;
+
 
         protected SplineContainer splineContainer;
         protected MeshFilter meshFilter;
@@ -237,6 +241,12 @@ namespace SplineMeshTools.Core
             }
 
             var generatedMesh = new Mesh();
+
+            if (highDensityMesh)
+                generatedMesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
+            else
+                generatedMesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt16; 
+
             generatedMesh.name = meshName;
             generatedMesh.vertices = combinedVertices.ToArray();
             generatedMesh.normals = combinedNormals.ToArray();
@@ -268,6 +278,18 @@ namespace SplineMeshTools.Core
                 return true;
             }
 
+            if(splineContainer == null)
+            {
+                Debug.LogError("No Spline Container Attached to the GameObject");
+                return true;
+            }
+
+            if(splineContainer.Splines == null)
+            {
+                Debug.LogError("No splines inside the spline container");
+                return true;
+            }
+
             return false;
         }
 
@@ -275,6 +297,9 @@ namespace SplineMeshTools.Core
         {
 
             if (spline == null || segmentMesh == null)
+                return;
+
+            if (splineContainer == null || splineContainer.Splines == null)
                 return;
 
             if (splineContainer.Splines.Contains(spline))

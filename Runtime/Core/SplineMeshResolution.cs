@@ -210,6 +210,12 @@ namespace SplineMeshTools.Core
             }
 
             var generatedMesh = new Mesh();
+
+            if (highDensityMesh)
+                generatedMesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
+            else
+                generatedMesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt16;
+
             generatedMesh.name = "Spline Mesh";
             generatedMesh.vertices = combinedVertices.ToArray();
             generatedMesh.normals = combinedNormals.ToArray();
@@ -224,16 +230,6 @@ namespace SplineMeshTools.Core
             generatedMesh.RecalculateBounds();
             generatedMesh.RecalculateNormals();
             generatedMesh.RecalculateTangents();
-        }
-
-        private int FindSegmentIndexFromRatios(List<float> segmentRatios, float t)
-        {
-            for (int i = 0; i < segmentRatios.Count - 1; i++)
-            {
-                if (t >= segmentRatios[i] && t <= segmentRatios[i + 1])
-                    return i;
-            }
-            return segmentRatios.Count - 2; // Fallback to last segment
         }
 
 
