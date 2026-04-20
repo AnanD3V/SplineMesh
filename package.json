@@ -20,7 +20,7 @@
     "url": "https://youtube.com/@anandev"
   },
   "dependencies": {
-    "com.unity.splines": "2.7.2"
+    "com.unity.splines": "2.7.2",
     "com.unity.formats.fbx": "5.1.5"
   },
   "repository": {
