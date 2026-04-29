@@ -29,7 +29,7 @@ Stay tuned for updates!
 2. Click the **Add package from Git URL** button.  
 3. Paste the following URL:  
    ```text
-   https://github.com/AnanD3V/SplineMesh
+   https://github.com/AnanD3V/SplineMesh.git
 ### Option 2: Install via package
 1. Open this alternative link to get the package file
    ```text
