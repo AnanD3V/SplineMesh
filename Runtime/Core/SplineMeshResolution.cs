@@ -209,7 +209,12 @@ namespace SplineMeshTools.Core
                 splineCounter++;
             }
 
-            var generatedMesh = new Mesh();
+            if (generatedMesh != null)
+            {
+                Destroy(generatedMesh);     //PREVENT MEMORY LEAK
+            }
+
+            generatedMesh = new Mesh();
 
             if (highDensityMesh)
                 generatedMesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
@@ -244,6 +249,14 @@ namespace SplineMeshTools.Core
             }
 
             return false;
+        }
+
+        private void OnDestroy()
+        {
+            if (generatedMesh != null)
+            {
+                Destroy(generatedMesh);     //PREVENTS MEMORY LEAK
+            }
         }
     }
 }

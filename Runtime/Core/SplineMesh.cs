@@ -49,8 +49,10 @@ namespace SplineMeshTools.Core
 
         protected SplineContainer splineContainer;
         protected MeshFilter meshFilter;
+        protected Mesh generatedMesh;
 
         private bool autoGenFlag;
+
 
         void Awake() => meshFilter = GetComponent<MeshFilter>();
 
@@ -240,7 +242,12 @@ namespace SplineMeshTools.Core
                 splineCounter++;
             }
 
-            var generatedMesh = new Mesh();
+            if(generatedMesh!=null)
+            {
+                Destroy(generatedMesh);     //PREVENT MEMORY LEAK
+            }
+
+            generatedMesh = new Mesh();
 
             if (highDensityMesh)
                 generatedMesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
@@ -304,6 +311,14 @@ namespace SplineMeshTools.Core
 
             if (splineContainer.Splines.Contains(spline))
                 GenerateMeshAlongSpline();
+        }
+
+        private void OnDestroy()
+        {
+            if (generatedMesh != null)
+            {
+                Destroy(generatedMesh);     //PREVENTS MEMORY LEAK
+            }
         }
 
     }

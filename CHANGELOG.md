@@ -4,6 +4,10 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [1.5.1] - 2026-06-12
+###Changed
+- Updated `SplineMesh.cs` and `SplineMeshResolution.cs` to prevent unwanted memory leak during runtime mesh generation.
+
 ## [1.5.0] - 2026-04-14
 ### Added
 - Added feature to save the generated mesh as an FBX file. Just select the GameObject, (at the top) click on SplineMesh > Export Selected to FBX. Added `SplineMeshExporter.cs` file (Editor Menu Item) for this feature. This feature requires FBX Exporter package as a dependency and will be very useful.
