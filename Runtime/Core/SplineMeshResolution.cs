@@ -211,7 +211,7 @@ namespace SplineMeshTools.Core
 
             if (generatedMesh != null)
             {
-                Destroy(generatedMesh);     //PREVENT MEMORY LEAK
+                DestroyImmediate(generatedMesh);     //PREVENT MEMORY LEAK
             }
 
             generatedMesh = new Mesh();
