@@ -269,9 +269,16 @@ namespace SplineMeshTools.Core
 
         private void OnDestroy()
         {
-            if (generatedMesh != null)
+
+            if (generatedMesh != null)  //PREVENTS MEMORY LEAK
             {
-                Destroy(generatedMesh);     //PREVENTS MEMORY LEAK
+
+            #if UNITY_EDITOR
+                DestroyImmediate(generatedMesh);
+            #else
+                Destroy(generatedMesh);
+            #endif
+
             }
         }
     }
