@@ -169,7 +169,15 @@ namespace SplineMeshTools.Core
 
 
                         var tangent = (Vector3)spline.EvaluateTangent(point);
-                        var splineRotation = Quaternion.LookRotation(tangent.normalized, shouldTwistMesh ? (twistRotation * Vector3.up) : Vector3.up);
+                        Quaternion splineRotation;
+                        if (tangent.normalized != Vector3.zero)
+                        {
+                            splineRotation = Quaternion.LookRotation(tangent.normalized, shouldTwistMesh ? (twistRotation * Vector3.up) : Vector3.up);
+                        }
+                        else
+                        {
+                            splineRotation = Quaternion.identity;
+                        }
                         var transformedNormal = splineRotation * normal;
 
 

@@ -171,8 +171,19 @@ namespace SplineMeshTools.Core
                         float t = vertexRatios[counter]; // Interpolation factor between knots
                         Quaternion twistRotation = Quaternion.Slerp(knotRotations[knotAIndex], knotRotations[knotBIndex], t);
 
+
+
                         // Combine tangent and twist to get final rotation
-                        Quaternion splineRotation = Quaternion.LookRotation(tangent.normalized, shouldTwistMesh ? (twistRotation * Vector3.up) : Vector3.up);
+                        Quaternion splineRotation;
+
+                        if (tangent.normalized != Vector3.zero)
+                        {
+                            splineRotation = Quaternion.LookRotation(tangent.normalized, shouldTwistMesh ? (twistRotation * Vector3.up) : Vector3.up);
+                        }
+                        else
+                        {
+                            splineRotation = Quaternion.identity;
+                        }
 
                         var transformedPosition = splinePosition + splineRotation * vertexOffsets[counter];
                         vertices.Add(transformedPosition + positionAdjustment);
